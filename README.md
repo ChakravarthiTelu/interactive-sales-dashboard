@@ -18,6 +18,18 @@ It supports uploading JSON data and was developed with the assistance of **Gener
 - 🎨 Modern glassmorphism-style UI
 
 ---
+🤖 Powered by Generative AI
+This project was created with the help of ChatGPT (OpenAI), which assisted with:
+
+Designing the dashboard layout
+
+Writing and refining JavaScript logic
+
+Creating responsive and clean UI components
+
+Explaining best practices for interactive visualizations
+
+
 
 ## 📂 How to Use
 
@@ -39,15 +51,4 @@ It supports uploading JSON data and was developed with the assistance of **Gener
     "Total Amount": 150
   }
 ]
-🤖 Powered by Generative AI
-This project was created with the help of ChatGPT (OpenAI), which assisted with:
-
-Designing the dashboard layout
-
-Writing and refining JavaScript logic
-
-Creating responsive and clean UI components
-
-Explaining best practices for interactive visualizations
-
 
