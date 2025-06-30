@@ -1,0 +1,169 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Interactive Sales Dashboard</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #d0f0ff, #e6f9ff);
+      padding: 20px;
+      margin: 0;
+    }
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+      color: #000;
+    }
+    #upload-section {
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    input[type="file"] {
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      background: #f9f9f9;
+    }
+    .kpi {
+      font-size: 28px;
+      font-weight: bold;
+      color: #333;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <h1 style="text-align:center;">📊 Interactive Sales Dashboard</h1>
+
+  <div id="upload-section">
+    <input type="file" id="jsonUpload" accept=".json" />
+  </div>
+
+  <div class="container">
+    <div class="card"><div id="salesOverTime"></div></div>
+    <div class="card"><div id="salesByCategory"></div></div>
+    <div class="card"><div id="ageVsSpend"></div></div>
+    <div class="card"><div id="salesByGender"></div></div>
+    <div class="card kpi" id="avgOrderValue">Average Order Value: ₹0</div>
+  </div>
+
+  <script>
+    document.getElementById('jsonUpload').addEventListener('change', function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const jsonData = JSON.parse(e.target.result);
+          generateDashboard(jsonData);
+        } catch (err) {
+          alert("Invalid JSON file");
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    function generateDashboard(data) {
+      // Preprocessing
+      const dateLabels = [];
+      const totalAmounts = [];
+      const categoryMap = {};
+      const genderMap = {};
+      const ageSpend = [];
+      let totalSales = 0;
+
+      data.forEach(item => {
+        const date = item.Date;
+        const amount = item["Total Amount"];
+        const category = item["Product Category"];
+        const gender = item["Gender"];
+        const age = item["Age"];
+
+        // Sales over time
+        if (!dateLabels.includes(date)) {
+          dateLabels.push(date);
+          totalAmounts.push(amount);
+        } else {
+          const idx = dateLabels.indexOf(date);
+          totalAmounts[idx] += amount;
+        }
+
+        // Category
+        categoryMap[category] = (categoryMap[category] || 0) + amount;
+
+        // Gender
+        genderMap[gender] = (genderMap[gender] || 0) + amount;
+
+        // Age vs Spend
+        ageSpend.push({ age: age, amount: amount });
+
+        totalSales += amount;
+      });
+
+      // 1. Sales Over Time
+      Plotly.newPlot("salesOverTime", [{
+        x: dateLabels,
+        y: totalAmounts,
+        type: 'scatter',
+        mode: 'lines+markers',
+        marker: { color: 'blue' }
+      }], {
+        title: "📅 Sales Over Time",
+        margin: { t: 40 }
+      });
+
+      // 2. Sales by Category
+      Plotly.newPlot("salesByCategory", [{
+        x: Object.keys(categoryMap),
+        y: Object.values(categoryMap),
+        type: 'bar',
+        marker: { color: 'orange' }
+      }], {
+        title: "🛍️ Sales by Product Category",
+        margin: { t: 40 }
+      });
+
+      // 3. Age vs Spend
+      Plotly.newPlot("ageVsSpend", [{
+        x: ageSpend.map(a => a.age),
+        y: ageSpend.map(a => a.amount),
+        mode: 'markers',
+        type: 'scatter',
+        marker: { size: 12, color: 'teal' }
+      }], {
+        title: "👥 Age vs Total Spend",
+        xaxis: { title: 'Age' },
+        yaxis: { title: 'Total Spend (₹)' },
+        margin: { t: 40 }
+      });
+
+      // 4. Sales by Gender
+      Plotly.newPlot("salesByGender", [{
+        labels: Object.keys(genderMap),
+        values: Object.values(genderMap),
+        type: 'pie'
+      }], {
+        title: "👨‍🦰👩‍🦰 Sales by Gender",
+        margin: { t: 40 }
+      });
+
+      // 5. AOV (Average Order Value)
+      const aov = totalSales / data.length;
+      document.getElementById("avgOrderValue").innerText = `💰 Average Order Value: ₹${aov.toFixed(2)}`;
+    }
+  </script>
+</body>
+</html>
